@@ -10,7 +10,7 @@ public class Saver {
             writer.println(mapState.length + " " + mapState[0].length); // save map size
             for (int i = 0; i < mapState.length; i++) {
                 for (int j = 0; j < mapState[i].length; j++) {
-                    writer.println(i + " " + j + " " + mapState[i][j].getType());
+                    writer.println(i + " " + j + " " + mapState[i][j].getType() + " " + mapState[i][j].getOil());
                 }
             }
         } catch (IOException e) {

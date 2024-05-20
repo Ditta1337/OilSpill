@@ -15,8 +15,11 @@ import javax.swing.event.MouseInputListener;
 
 public class Board extends JComponent implements MouseInputListener, ComponentListener {
 	private static final PointType DEFAULTPOINT = PointType.WATER;
-	private final int SIZE = 14;
+	private static final int SIZE = 14;
+	private static final double DT = 1;
+	private static final double MAXOIL = 1000;
 	private Point[][] points;
+	private WindPoint[][] windMap;
 	private PointType selectedType = PointType.OIL;
 	private int length;
 	private int height;
@@ -29,8 +32,33 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		setOpaque(true);
 	}
 
+	public static double getMaxOil() {
+		return MAXOIL;
+	}
+
+	public static int getSIZE() {
+		return SIZE;
+	}
+
+	public static double getDT() {
+		return DT;
+	}
+
 	// single iteration
 	public void iteration() {
+		for (int x = 1; x < length - 1; ++x) {
+			for (int y = 1; y < height - 1; ++y) {
+				points[x][y].calculateNextOil(windMap[x][y]);
+			}
+		}
+
+		for (int x = 1; x < length - 1; ++x) {
+			for (int y = 1; y < height - 1; ++y) {
+				points[x][y].updateOil();
+			}
+		}
+
+		repaint();
 
 	}
 
@@ -38,7 +66,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	public void clear() {
 		for (int x = 0; x < length; ++x) {
 			for (int y = 0; y < height; ++y) {
-				points[x][y].setState(0);
+				points[x][y].setType(DEFAULTPOINT);
+				points[x][y].setOil(0);
 			}
 			this.repaint();
 		}
@@ -46,6 +75,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 	private void initialize(int length, int height) {
 		points = new Point[length][height];
+		windMap = WindGenerator.generateSimpleWindMap(length, height, 1, Direction.NE);
 
 		for (int x = 0; x < length; ++x) {
 			for (int y = 0; y < height; ++y) {
@@ -65,24 +95,27 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 
 	private void mooreNeighborhood(int x, int y) {
-		for (int i = -1; i < 2; ++i) {
-			for (int j = -1; j < 2; ++j) {
-				if (i != 0 && j != 0) {
-					points[x][y].addNeighbor(points[x + i][y + j]);
-				}
-			}
-		}
+		points[x][y].addNeighbour(Direction.N, points[x][y - 1]);
+		points[x][y].addNeighbour(Direction.S, points[x][y + 1]);
+		points[x][y].addNeighbour(Direction.E, points[x + 1][y]);
+		points[x][y].addNeighbour(Direction.W, points[x - 1][y]);
+		points[x][y].addNeighbour(Direction.NE, points[x + 1][y - 1]);
+		points[x][y].addNeighbour(Direction.NW, points[x - 1][y - 1]);
+		points[x][y].addNeighbour(Direction.SE, points[x + 1][y + 1]);
+		points[x][y].addNeighbour(Direction.SW, points[x - 1][y + 1]);
 	}
 
 	public Point[][] getMapState() {
 		return points;
 	}
 
+
 	public void setMapState(Point[][] mapState) {
 		length = mapState.length;
 		height = mapState[0].length;
 		setPreferredSize(new Dimension(length * SIZE, height * SIZE));
 		points = mapState;
+		setOil();
 		initializeNeighbors(length, height);
 		revalidate();
 		repaint();
@@ -91,6 +124,17 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		removeComponentListener(this);
 		SwingUtilities.getWindowAncestor(this).pack();
 		addComponentListener(this);
+	}
+
+	private void setOil() {
+		for (int x = 0; x < length; ++x) {
+			for (int y = 0; y < height; ++y) {
+				if (points[x][y].getType() == PointType.OIL) {
+					points[x][y].setOil(MAXOIL);
+				}
+			}
+		}
+
 	}
 
 	public void setPointType(PointType type) {
@@ -131,10 +175,10 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			for (y = 0; y < height; ++y) {
 				switch (points[x][y].getType()) {
 					case WATER:
-						g.setColor(Color.CYAN);
-						break;
-					case OIL:
-						g.setColor(Color.BLACK);
+						double oil = points[x][y].getOil();
+						// set color to shade of cyan based on oil level
+						// 0 is cyan and 1000 is black
+						g.setColor(new Color(0, (int) (255 - (255 * oil / MAXOIL)), (int) (255 - (255 * oil / MAXOIL))));
 						break;
 					case LAND:
 						g.setColor(Color.YELLOW);
@@ -151,7 +195,6 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		int x = e.getX() / SIZE;
 		int y = e.getY() / SIZE;
 		if ((x < length) && (x > 0) && (y < height) && (y > 0)) {
-			points[x][y].clicked();
 			this.repaint();
 		}
 	}
@@ -166,7 +209,13 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		int x = e.getX() / SIZE;
 		int y = e.getY() / SIZE;
 		if ((x < length) && (x > 0) && (y < height) && (y > 0)) {
-			points[x][y].setType(selectedType);
+
+			if (selectedType == PointType.OIL) {
+				points[x][y].setOil(MAXOIL);
+			}
+			else {
+				points[x][y].setType(selectedType);
+			}
 			repaint();
 		}
 	}

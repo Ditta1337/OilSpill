@@ -14,7 +14,13 @@ public class Loader {
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols; j++) {
                     String[] point = reader.readLine().split(" ");
-                    mapState[i][j] = new Point(PointType.valueOf(point[2]));
+                    if (point[2].equals("OIL") || point[2].equals("WATER")) {
+                        mapState[i][j] = new Point(PointType.WATER);
+                        mapState[i][j].setOil(Double.parseDouble(point[3]));
+                    }
+                    else {
+                        mapState[i][j] = new Point(PointType.LAND);
+                    }
                 }
             }
             return mapState;
