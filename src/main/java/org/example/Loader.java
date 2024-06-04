@@ -3,10 +3,10 @@ package org.example;
 import java.io.*;
 
 public class Loader {
-    private static final String PATH = "src/main/resources/";
+    private static final String MAPPATH = "src/main/resources/";
 
-    public static Point[][] load(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(PATH + fileName))) {
+    public static Point[][] loadMap(String fileName) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(MAPPATH + fileName))) {
             String[] size = reader.readLine().split(" ");
             int rows = Integer.parseInt(size[0]);
             int cols = Integer.parseInt(size[1]);
@@ -32,12 +32,12 @@ public class Loader {
     }
 
     public static String[] getFiles() {
-        return new File(PATH).list();
+        return new File(MAPPATH).list();
     }
 
     public static void delete(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(PATH + fileName))) {
-            File file = new File(PATH + fileName);
+        try (BufferedReader reader = new BufferedReader(new FileReader(MAPPATH + fileName))) {
+            File file = new File(MAPPATH + fileName);
             file.delete();
         } catch (IOException e) {
             System.out.println("Error while deleting file");

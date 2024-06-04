@@ -18,6 +18,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static final int SIZE = 14;
 	private static final double DT = 1;
 	private static final double MAXOIL = 1000;
+	private static final double SPAWNOIL = 2000;
+	private static boolean showWind = false;
 	private Point[][] points;
 	private WindPoint[][] windMap;
 	private PointType selectedType = PointType.OIL;
@@ -32,8 +34,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		setOpaque(true);
 	}
 
-	public static double getMaxOil() {
-		return MAXOIL;
+	public static void setShowWind(boolean showWind) {
+		Board.showWind = showWind;
 	}
 
 	public static int getSIZE() {
@@ -75,7 +77,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 	private void initialize(int length, int height) {
 		points = new Point[length][height];
-		windMap = WindGenerator.generateSimpleWindMap(length, height, 1, Direction.NE);
+		windMap = WindGenerator.generateWindMapFromCSV(length, height);
 
 		for (int x = 0; x < length; ++x) {
 			for (int y = 0; y < height; ++y) {
@@ -119,6 +121,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		initializeNeighbors(length, height);
 		revalidate();
 		repaint();
+		windMap = WindGenerator.generateWindMapFromCSV(length, height);
 
 		// prevents componentResized from being called and clearing the board
 		removeComponentListener(this);
@@ -130,7 +133,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		for (int x = 0; x < length; ++x) {
 			for (int y = 0; y < height; ++y) {
 				if (points[x][y].getType() == PointType.OIL) {
-					points[x][y].setOil(MAXOIL);
+					points[x][y].setOil(SPAWNOIL);
 				}
 			}
 		}
@@ -149,6 +152,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		}
 		g.setColor(Color.GRAY);
 		drawNetting(g);
+		if (showWind) {
+			drawWindArrows(g);
+		}
 	}
 
 	// draws the background netting
@@ -175,7 +181,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			for (y = 0; y < height; ++y) {
 				switch (points[x][y].getType()) {
 					case WATER:
-						double oil = points[x][y].getOil();
+						double oil = Math.min(points[x][y].getOil(), MAXOIL - 1);
 						// set color to shade of cyan based on oil level
 						// 0 is cyan and 1000 is black
 						g.setColor(new Color(0, (int) (255 - (255 * oil / MAXOIL)), (int) (255 - (255 * oil / MAXOIL))));
@@ -189,6 +195,21 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		}
 	}
 
+	private void drawWindArrows(Graphics g) {
+		for (int x = 0; x < length; ++x) {
+			for (int y = 0; y < height; ++y) {
+				Vector2D direction = windMap[x][y].direction();
+				g.setColor(Color.RED);
+				// rotate line 90 degrees counter clockwise
+				double x1 = x * SIZE + SIZE / 2;
+				double y1 = y * SIZE + SIZE / 2;
+				double x2 = x1 + direction.getY() * SIZE / 2;
+				double y2 = y1 - direction.getX() * SIZE / 2;
+				g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
+
+			}
+		}
+	}
 
 
 	public void mouseClicked(MouseEvent e) {

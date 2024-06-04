@@ -21,6 +21,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 	private JButton save;
 	private JButton load;
 	private JSlider speed;
+	private JCheckBox showWind;
 	private JComboBox<PointType> drawType;
 	private JFrame frame;
 	private int iterNum = 0;
@@ -75,9 +76,18 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		speed.addChangeListener(this);
 		speed.setValue(maxDelay - timer.getDelay());
 
+		showWind = new JCheckBox("Show wind");
+		showWind.setToolTipText("Show wind");
+		showWind.addActionListener(e -> {
+			Board.setShowWind(showWind.isSelected());
+			board.repaint();
+		});
+
+
 		buttonPanel.add(start);
 		buttonPanel.add(drawType);
 		buttonPanel.add(clear);
+		buttonPanel.add(showWind);
 		buttonPanel.add(speed);
 		buttonPanel.add(save);
 		buttonPanel.add(load);
@@ -155,7 +165,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 		okButton.addActionListener(e -> {
 			String filename = (String) fileSelection.getSelectedItem();
 			if (filename != null) {
-				Point[][] mapState = Loader.load(filename);
+				Point[][] mapState = Loader.loadMap(filename);
 				if (mapState != null) {
 					board.setMapState(mapState);
 					frame.setTitle("Oil Spill (" + iterNum + " iteration)");

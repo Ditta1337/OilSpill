@@ -7,12 +7,14 @@ import java.util.Map;
 
 public class Point {
 	private final Map<Direction, Point> neighbours = new HashMap<>();
-	private final double m = 0.002;
-	private final double d = 0.05;
+	private static final double EPSILON = 1e-10; // small value to account for floating-point errors
+
+	private final double m = 0.05; //0.05
+	private final double d = 0.2; //0.2
 	private PointType type;
 	private double oil = 0;
 	private double nextOil = 0;
-	
+
 	public Point(PointType type) {
 		this.type = type;
 	}
@@ -39,7 +41,7 @@ public class Point {
 	}
 
 	public void calculateNextOil(WindPoint windPoint) {
-		nextOil = Math.min(oil + nextOil, Board.getMaxOil());
+		nextOil = oil + nextOil;
 		wind(windPoint);
 		dispersion();
 	}
@@ -48,32 +50,74 @@ public class Point {
 		for (Direction dir : Direction.getEdges()) {
 			Point nei = neighbours.get(dir);
 			if (nei.getType() == PointType.WATER) {
-				nextOil -= m * (oil - nei.getOil());
+				double oilDifference = m * (oil - nei.getOil());
+				nextOil -= oilDifference;
+				nei.nextOil += oilDifference;
+
+				if (Math.abs(nextOil) < EPSILON) {
+					nextOil = 0;
+				}
+				if (Math.abs(nei.nextOil) < EPSILON) {
+					nei.nextOil = 0;
+				}
 			}
 		}
 
 		for (Direction dir : Direction.getCorners()) {
 			Point nei = neighbours.get(dir);
 			if (nei.getType() == PointType.WATER) {
-				nextOil -= m * d * (oil - nei.getOil());
+				double oilDifference = m * d * (oil - nei.getOil());
+				nextOil -= oilDifference;
+				nei.nextOil += oilDifference;
+
+				if (Math.abs(nextOil) < EPSILON) {
+					nextOil = 0;
+				}
+				if (Math.abs(nei.nextOil) < EPSILON) {
+					nei.nextOil = 0;
+				}
 			}
 		}
 	}
+
 
 	private void wind(WindPoint windPoint) {
 		int size  = Board.getSIZE();
 		double dt = Board.getDT();
 		int area = size * size;
-		Direction[] overlappingDirections = windPoint.direction().getOverlappingDirections();
 
 		// North - South shift of the cell
-		double dNS = Math.abs(windPoint.direction().toUnitVector()[0] * dt * windPoint.strength());
+		double dNS = Math.abs(windPoint.direction().getVectorAsArray()[0] * dt * windPoint.speed());
 		// East - West shift of the cell
-		double dEW = Math.abs(windPoint.direction().toUnitVector()[1] * dt * windPoint.strength());
+		double dEW = Math.abs(windPoint.direction().getVectorAsArray()[1] * dt * windPoint.speed());
+
+		// based on dNS and dEW we can calculate the overlapping directions
+		List<Direction> overlappingDirections = new ArrayList<>();
+		if (dNS > 0) {
+			if (dEW > 0) {
+				overlappingDirections.add(Direction.NE);
+				overlappingDirections.add(Direction.E);
+			}
+			if (dEW < 0) {
+				overlappingDirections.add(Direction.NW);
+				overlappingDirections.add(Direction.W);
+			}
+			overlappingDirections.add(Direction.N);
+		} else {
+			if (dEW > 0) {
+				overlappingDirections.add(Direction.SE);
+				overlappingDirections.add(Direction.E);
+			}
+			if (dEW < 0) {
+				overlappingDirections.add(Direction.SW);
+				overlappingDirections.add(Direction.W);
+			}
+			overlappingDirections.add(Direction.S);
+		}
 
 		for (Direction dir : overlappingDirections) {
 			Point nei = neighbours.get(dir);
-			if (nei.getType() == PointType.WATER && nei.getOil() < Board.getMaxOil()){
+			if (nei.getType() == PointType.WATER) {
 				double newArea = 0;
 				double proportion = 0;
 				switch (dir) {
@@ -95,21 +139,30 @@ public class Point {
 						break;
 				}
 				proportion = newArea / area;
-				partitionOil(proportion, nei);
+				double oilToMove = proportion * oil;
 
+				if (oilToMove > oil) {
+					oilToMove = oil; // Ensure we do not move more oil than available
+				}
+
+//				System.out.println("New area: " + newArea + "Oil to move: " + oilToMove);
+
+				nextOil -= oilToMove;
+				nei.nextOil += oilToMove;
+
+				if (Math.abs(nextOil) < EPSILON) {
+					nextOil = 0;
+				}
+				if (Math.abs(nei.nextOil) < EPSILON) {
+					nei.nextOil = 0;
+				}
 			}
 		}
+//		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
-	private void partitionOil(double proportion, Point nei) {
-		if (nei.nextOil + proportion * oil < Board.getMaxOil()) {
-			nextOil -= proportion * oil;
-			nei.nextOil += proportion * oil;
-		} else {
-			nextOil -= Board.getMaxOil() - nei.nextOil;
-			nei.nextOil = Board.getMaxOil();
-		}
-	}
+
+
 
 	public void updateOil() {
 		oil = nextOil;

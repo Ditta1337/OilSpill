@@ -1,5 +1,8 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum Direction {
     N,
     NE,
@@ -10,31 +13,26 @@ public enum Direction {
     W,
     NW;
 
-    public double[] toUnitVector() {
+    public Vector2D toUnitVector() {
         double diag = 1 / Math.sqrt(2);
         return switch(this) {
-            case N -> new double[]{1, 0};
-            case NE -> new double[]{diag, diag};
-            case E -> new double[]{0, 1};
-            case SE -> new double[]{-diag, diag};
-            case S -> new double[]{-1, 0};
-            case SW -> new double[]{-diag, -diag};
-            case W -> new double[]{0, -1};
-            case NW -> new double[]{diag, -diag};
+            case N -> new Vector2D(0, -1);
+            case NE -> new Vector2D(diag, -diag);
+            case E -> new Vector2D(1, 0);
+            case SE -> new Vector2D(diag, diag);
+            case S -> new Vector2D(0, 1);
+            case SW -> new Vector2D(-diag, diag);
+            case W -> new Vector2D(-1, 0);
+            case NW -> new Vector2D(-diag, -diag);
         };
     }
 
-    public Direction[] getOverlappingDirections() {
-        return switch (this) {
-            case N -> new Direction[]{N};
-            case NE -> new Direction[]{NE, N, E};
-            case E -> new Direction[]{E};
-            case SE -> new Direction[]{SE, E, S};
-            case S -> new Direction[]{S};
-            case SW -> new Direction[]{SW, S, W};
-            case W -> new Direction[]{W};
-            case NW -> new Direction[]{NW, W, N};
-        };
+    public static Vector2D[] getNeighborsVectors() {
+        List<Vector2D> neighbors = new ArrayList<>();
+        for (Direction dir : Direction.values()) {
+            neighbors.add(dir.toUnitVector());
+        }
+        return neighbors.toArray(new Vector2D[0]);
     }
 
     public static Direction[] getEdges() {

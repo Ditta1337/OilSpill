@@ -1,4 +1,4 @@
 package org.example;
 
-public record WindPoint(Direction direction, double strength) {
+public record WindPoint(Vector2D direction, double speed) {
 }
