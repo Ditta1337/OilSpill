@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from typing import List, Tuple
 
-csv_file_path = "data/gcoos_2010_01_wind_PROCESSED.csv"
+csv_file_path = "data/gcoos_2010_04_wind_PROCESSED.csv"
 save_file_path = "data/windmap.csv"
 NUM_STATIONS_PER_CELL = 3
 

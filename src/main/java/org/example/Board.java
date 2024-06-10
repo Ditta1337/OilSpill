@@ -15,10 +15,10 @@ import javax.swing.event.MouseInputListener;
 
 public class Board extends JComponent implements MouseInputListener, ComponentListener {
 	private static final PointType DEFAULTPOINT = PointType.WATER;
-	private static final int SIZE = 14;
-	private static final double DT = 1;
+	private static int SIZE;
+	private static double DT = 1;
 	private static final double MAXOIL = 1000;
-	private static final double SPAWNOIL = 2000;
+	private static int SPAWNOIL = 10000;
 	private static boolean showWind = false;
 	private Point[][] points;
 	private WindPoint[][] windMap;
@@ -32,6 +32,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		addMouseMotionListener(this);
 		setBackground(Color.CYAN);
 		setOpaque(true);
+		Loader.setMapSettings();
 	}
 
 	public static void setShowWind(boolean showWind) {
@@ -42,9 +43,15 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		return SIZE;
 	}
 
+	public static void setSIZE(int size) {SIZE = size;}
+
 	public static double getDT() {
 		return DT;
 	}
+
+	public static void setDT(double dt) {DT = dt;}
+
+	public static void setSPAWNOIL(int oil) {SPAWNOIL = oil;}
 
 	// single iteration
 	public void iteration() {
@@ -76,14 +83,25 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 
 	private void initialize(int length, int height) {
-		points = new Point[length][height];
+		Point[][] oldPoints = points;
+		Point[][] newPoints = new Point[length][height];
 		windMap = WindGenerator.generateWindMapFromCSV(length, height);
+//		windMap = WindGenerator.generateSimpleWindMap(length, height, 1, Direction.SE.toUnitVector());
 
 		for (int x = 0; x < length; ++x) {
 			for (int y = 0; y < height; ++y) {
-				points[x][y] = new Point(DEFAULTPOINT);
+				newPoints[x][y] = new Point(DEFAULTPOINT);
 			}
 		}
+		if (oldPoints != null) {
+			for (int x = 0; x < Math.min(length, oldPoints.length); ++x) {
+				for (int y = 0; y < Math.min(height, oldPoints[0].length); ++y) {
+					newPoints[x][y] = oldPoints[x][y];
+				}
+			}
+		}
+
+		points = newPoints;
 
 		initializeNeighbors(length, height);
 	}
@@ -123,10 +141,17 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		repaint();
 		windMap = WindGenerator.generateWindMapFromCSV(length, height);
 
-		// prevents componentResized from being called and clearing the board
-		removeComponentListener(this);
-		SwingUtilities.getWindowAncestor(this).pack();
-		addComponentListener(this);
+		// set the window size so it fits the board
+		Container parent = getParent();
+		while (parent != null) {
+			if (parent instanceof JFrame) {
+				JFrame frame = (JFrame) parent;
+				frame.pack();
+				frame.setSize(new Dimension(length * SIZE, height * SIZE)); // set the size of the JFrame directly
+				break;
+			}
+			parent = parent.getParent();
+		}
 	}
 
 	private void setOil() {
@@ -182,9 +207,9 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 				switch (points[x][y].getType()) {
 					case WATER:
 						double oil = Math.min(points[x][y].getOil(), MAXOIL - 1);
-						// set color to shade of cyan based on oil level
-						// 0 is cyan and 1000 is black
-						g.setColor(new Color(0, (int) (255 - (255 * oil / MAXOIL)), (int) (255 - (255 * oil / MAXOIL))));
+						int colorComponent = (int) (255 - (255 * oil / MAXOIL));
+						colorComponent = Math.max(0, Math.min(255, colorComponent)); // Ensure the value is between 0 and 255
+						g.setColor(new Color(0, colorComponent, colorComponent));
 						break;
 					case LAND:
 						g.setColor(Color.YELLOW);
@@ -200,11 +225,15 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			for (int y = 0; y < height; ++y) {
 				Vector2D direction = windMap[x][y].direction();
 				g.setColor(Color.RED);
-				// rotate line 90 degrees counter clockwise
-				double x1 = x * SIZE + SIZE / 2;
-				double y1 = y * SIZE + SIZE / 2;
-				double x2 = x1 + direction.getY() * SIZE / 2;
-				double y2 = y1 - direction.getX() * SIZE / 2;
+				// rotate line 90 degrees counterclockwise
+				double x1 = (x * SIZE) + SIZE / 2;
+				double y1 = (y * SIZE) + SIZE / 2;
+				double x2 = x1 + (-SIZE / 2) * direction.getX();
+				double y2 = y1 + (SIZE / 2) * direction.getY();
+
+
+
+
 				g.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
 
 			}
@@ -232,7 +261,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		if ((x < length) && (x > 0) && (y < height) && (y > 0)) {
 
 			if (selectedType == PointType.OIL) {
-				points[x][y].setOil(MAXOIL);
+				points[x][y].setOil(SPAWNOIL);
 			}
 			else {
 				points[x][y].setType(selectedType);

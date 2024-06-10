@@ -1,0 +1,3 @@
+cell_width: 20 #in kilometers
+oil_per_cell: 1000000 #oil spill per cell in liters
+

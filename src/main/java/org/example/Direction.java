@@ -17,13 +17,13 @@ public enum Direction {
         double diag = 1 / Math.sqrt(2);
         return switch(this) {
             case N -> new Vector2D(0, -1);
-            case NE -> new Vector2D(diag, -diag);
-            case E -> new Vector2D(1, 0);
-            case SE -> new Vector2D(diag, diag);
+            case NE -> new Vector2D(-diag, -diag);
+            case E -> new Vector2D(-1, 0);
+            case SE -> new Vector2D(-diag, diag);
             case S -> new Vector2D(0, 1);
-            case SW -> new Vector2D(-diag, diag);
-            case W -> new Vector2D(-1, 0);
-            case NW -> new Vector2D(-diag, -diag);
+            case SW -> new Vector2D(diag, diag);
+            case W -> new Vector2D(1, 0);
+            case NW -> new Vector2D(diag, -diag);
         };
     }
 

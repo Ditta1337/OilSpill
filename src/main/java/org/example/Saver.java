@@ -3,7 +3,7 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class Saver {
-    private static final String PATH = "src/main/resources/";
+    private static final String PATH = "src/main/resources/saves/";
 
     public static void save(Point[][] mapState, String fileName) {
         try (PrintWriter writer = new PrintWriter(PATH + fileName)) {

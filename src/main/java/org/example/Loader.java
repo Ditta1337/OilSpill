@@ -1,9 +1,13 @@
 package org.example;
 
 import java.io.*;
+import java.util.Map;
+
+import org.yaml.snakeyaml.Yaml;
 
 public class Loader {
-    private static final String MAPPATH = "src/main/resources/";
+    private static final String MAPPATH = "src/main/resources/saves/";
+    private static final String MAPSETTINGSPATH = "src/main/resources/settings/setting.yaml";
 
     public static Point[][] loadMap(String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(MAPPATH + fileName))) {
@@ -43,5 +47,21 @@ public class Loader {
             System.out.println("Error while deleting file");
             e.printStackTrace();
         }
+    }
+
+    public static void setMapSettings() {
+        Yaml yaml = new Yaml();
+        try (InputStream in = new FileInputStream(MAPSETTINGSPATH)) {
+            Map<String, Object> mapSettings = yaml.load(in);
+            int cellSize = (int) mapSettings.get("cell_width") * 3 / 4;
+            int oilSpawn = (int) (mapSettings.get("oil_per_cell")) / 100;
+            Board.setSIZE(cellSize);
+            Board.setSPAWNOIL(oilSpawn);
+
+        } catch (Exception e) {
+            System.out.println("Error while loading map settings");
+            e.printStackTrace();
+        }
+
     }
 }

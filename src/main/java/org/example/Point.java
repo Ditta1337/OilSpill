@@ -86,12 +86,16 @@ public class Point {
 		double dt = Board.getDT();
 		int area = size * size;
 
-		// North - South shift of the cell
-		double dNS = Math.abs(windPoint.direction().getVectorAsArray()[0] * dt * windPoint.speed());
-		// East - West shift of the cell
-		double dEW = Math.abs(windPoint.direction().getVectorAsArray()[1] * dt * windPoint.speed());
+//		System.out.println("Wind: " + windPoint.direction().getX() + " " + windPoint.direction().getY() + " " + windPoint.speed() );
 
-		// based on dNS and dEW we can calculate the overlapping directions
+		// North - South shift of the cell
+		double dNS = -windPoint.direction().getVectorAsArray()[1] * dt * windPoint.speed();
+		// East - West shift of the cell
+		double dEW = -windPoint.direction().getVectorAsArray()[0] * dt * windPoint.speed();
+
+//		System.out.println("dNS: " + dNS + " dEW: " + dEW);
+
+		// based on dNS and dEW calculate the overlapping directions
 		List<Direction> overlappingDirections = new ArrayList<>();
 		if (dNS > 0) {
 			if (dEW > 0) {
@@ -114,6 +118,9 @@ public class Point {
 			}
 			overlappingDirections.add(Direction.S);
 		}
+
+		dEW = Math.abs(dEW);
+		dNS = Math.abs(dNS);
 
 		for (Direction dir : overlappingDirections) {
 			Point nei = neighbours.get(dir);
@@ -145,8 +152,6 @@ public class Point {
 					oilToMove = oil; // Ensure we do not move more oil than available
 				}
 
-//				System.out.println("New area: " + newArea + "Oil to move: " + oilToMove);
-
 				nextOil -= oilToMove;
 				nei.nextOil += oilToMove;
 
@@ -158,10 +163,8 @@ public class Point {
 				}
 			}
 		}
-//		throw new UnsupportedOperationException("Not implemented yet");
+
 	}
-
-
 
 
 	public void updateOil() {

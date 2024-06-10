@@ -167,8 +167,8 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 			if (filename != null) {
 				Point[][] mapState = Loader.loadMap(filename);
 				if (mapState != null) {
-					board.setMapState(mapState);
 					frame.setTitle("Oil Spill (" + iterNum + " iteration)");
+					board.setMapState(mapState);
 				}
 			}
 			dialog.dispose();
