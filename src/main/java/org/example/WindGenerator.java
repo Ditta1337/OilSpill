@@ -69,6 +69,7 @@ public class WindGenerator {
 
         // set DT
         Board.setDT(Board.getSIZE() / (maxSpeed * 2));
+        Board.setDTirl(Board.getDT() * 4000 / 3);
 
         return windMap;
     }

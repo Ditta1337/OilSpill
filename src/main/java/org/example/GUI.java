@@ -104,7 +104,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(timer)) {
 			iterNum++;
-			frame.setTitle("Oil Spill (" + iterNum + " iteration)");
+			frame.setTitle(board.getTimeElapsed());
 			board.iteration();
 		} else {
 			String command = e.getActionCommand();

@@ -17,6 +17,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private static final PointType DEFAULTPOINT = PointType.WATER;
 	private static int SIZE;
 	private static double DT = 1;
+	private static double DTirl = 1;
+	private int iterations = 0;
 	private static final double MAXOIL = 1000;
 	private static int SPAWNOIL = 10000;
 	private static boolean showWind = false;
@@ -25,6 +27,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	private PointType selectedType = PointType.OIL;
 	private int length;
 	private int height;
+	String timeElapsed = "No time elapsed";
 
 	public Board(int length, int height) {
 		addMouseListener(this);
@@ -53,12 +56,20 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 	public static void setSPAWNOIL(int oil) {SPAWNOIL = oil;}
 
+	public static void setDTirl(double dtirl) {DTirl = dtirl;}
+
+	public String getTimeElapsed() {
+		return timeElapsed;
+	}
+
 	public Point[][] getPoints(){
 		return points.clone();
 	}
 
 	// single iteration
 	public void iteration() {
+		iterations++;
+		timeElapsed = "Time elapsed: " + String.format("%.2f", iterations * DTirl / 86400 ) + " days";
 		for (int x = 1; x < length - 1; ++x) {
 			for (int y = 1; y < height - 1; ++y) {
 				points[x][y].calculateNextOil(windMap[x][y]);
