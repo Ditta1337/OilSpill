@@ -53,6 +53,10 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 	public static void setSPAWNOIL(int oil) {SPAWNOIL = oil;}
 
+	public Point[][] getPoints(){
+		return points.clone();
+	}
+
 	// single iteration
 	public void iteration() {
 		for (int x = 1; x < length - 1; ++x) {
