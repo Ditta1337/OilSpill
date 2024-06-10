@@ -6,27 +6,30 @@ import java.io.InputStreamReader;
 
 public class WindGenerator {
 
-    private static final String WINDPATH = "data/windmap.csv";
-    private static final String SCRIPTPATH = "python_scripts/generate_windmap_csv.py";
+    private static final String WINDPATH = "data/combinedmap.csv";
+    private static final String SCRIPTPATH = "python_scripts/generate_combinedmap_csv.py";
 
     private WindGenerator() {
         throw new UnsupportedOperationException("UtilityClass should not be instantiated");
     }
 
-    public static WindPoint[][] generateSimpleWindMap(int rows, int cols, double strength, Vector2D direction) {
+    public static WindPoint[][] generateSimpleWindMap(int rows, int cols, double speed, Vector2D direction) {
 
         WindPoint[][] windMap = new WindPoint[rows][cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                windMap[i][j] = new WindPoint(direction, strength);
+                windMap[i][j] = new WindPoint(direction, speed);
             }
         }
+
+        // set DT
+        Board.setDT(Board.getSIZE() / (speed * 2));
 
         return windMap;
     }
 
     public static WindPoint[][] generateWindMapFromCSV(int rows, int cols) {
-        System.out.println("Generating wind map");
+        System.out.println("Generating combined map");
         // generate rows x cols wind map csv file
         String command = "python3 " + SCRIPTPATH + " " + rows + " " + cols;
         try {
@@ -46,6 +49,8 @@ public class WindGenerator {
             e.printStackTrace();
         }
 
+        double maxSpeed = 0;
+
         // read csv file
         WindPoint[][] windMap = new WindPoint[rows][cols];
         try (BufferedReader reader = new BufferedReader(new FileReader(WINDPATH))) {
@@ -53,20 +58,20 @@ public class WindGenerator {
             for (int i = 0; i < rows; i++) {
                 String[] wind = reader.readLine().split(",");
                 for (int j = 0; j < cols; j++) {
-                    windMap[i][j] = new WindPoint(new Vector2D(Double.parseDouble(wind[3]), Double.parseDouble(wind[4])), Double.parseDouble(wind[2]));
+                    double speed = Double.parseDouble(wind[2]);
+                    maxSpeed = Math.max(maxSpeed, speed);
+                    windMap[i][j] = new WindPoint(new Vector2D(-Double.parseDouble(wind[3]), -Double.parseDouble(wind[4])), speed);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-//        for (int i = 0; i < rows; i++) {
-//            for (int j = 0; j < cols; j++) {
-//                System.out.println(windMap[i][j]);
-//            }
-//        }
+        // set DT
+        Board.setDT(Board.getSIZE() / (maxSpeed * 2));
 
         return windMap;
     }
+
 
 }
