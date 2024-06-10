@@ -69,7 +69,13 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	// single iteration
 	public void iteration() {
 		iterations++;
+		double daysElapsed = iterations * DTirl / 86400;
 		timeElapsed = "Time elapsed: " + String.format("%.2f", iterations * DTirl / 86400 ) + " days";
+		int dayToCompare = Math.round((float) daysElapsed);
+		if (dayToCompare < 5) {
+			showIntersectionOverUnion(daysElapsed, dayToCompare);
+		}
+
 		for (int x = 1; x < length - 1; ++x) {
 			for (int y = 1; y < height - 1; ++y) {
 				points[x][y].calculateNextOil(windMap[x][y]);
@@ -84,6 +90,13 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 		repaint();
 
+	}
+
+	private void showIntersectionOverUnion(double daysElapsed, int dayToCompare) {
+		String fileName = "horizon_" + dayToCompare;
+		Point[][] horizon = Loader.loadMap(fileName);
+		double percentage = IntersectionOverUnion.compare(points, horizon, 0);
+		System.out.println("Day: " + String.format("%.2f", daysElapsed) + " IoU: " + String.format("%.2f", percentage));
 	}
 
 	// clearing board
