@@ -8,15 +8,22 @@ csv_file_path = "data/gcoos_2010_04_sea_water_current_PROCESSED.csv"
 save_file_path = "data/currentmap.csv"
 NUM_STATIONS_PER_CELL = 3
 
-def create_current(df: pd.DataFrame, width: int, height: int):
+def create_current(df: pd.DataFrame, width: int, height: int, lower_right_lat: float, lower_right_lon: float, upper_left_lat: float, upper_left_lon: float):
     """
-    Create a current from the given dataframe, devide the points evenly into the current
+    Create a current from the given dataframe, divide the points evenly into the current
     and return the current
     """
+    # Filter the dataframe to include only stations within the specified rectangle
+    df = df[(df["latitude"] <= upper_left_lat) & (df["latitude"] >= lower_right_lat) &
+            (df["longitude"] >= upper_left_lon) & (df["longitude"] <= lower_right_lon)]
+
+    print("Currents map selected stations:")
+    print(df)
+
     current = [[[] for _ in range(width)] for _ in range(height)]
     stations = []
 
-    # Get the min and max latitude and longitude
+    # Get the min and max latitude and longitude within the filtered dataframe
     min_lat = df["latitude"].min()
     max_lat = df["latitude"].max()
     min_lon = df["longitude"].min()
@@ -53,7 +60,6 @@ def create_current(df: pd.DataFrame, width: int, height: int):
     return current
 
 def get_nearest_stations(i: int, j: int, stations: List[Tuple[int, int]]): 
-
     """
     Find and return NUM_STATIONS_PER_CELL nearest stations to the given cell
     """
@@ -82,7 +88,6 @@ def fill_current_map(current: List[List[Tuple[float, float, float]]], stations: 
                     direction_of_sea_water_velocity_y += current[station[0]][station[1]][2]
                 current[i][j] = (sea_water_speed / NUM_STATIONS_PER_CELL, direction_of_sea_water_velocity_x / NUM_STATIONS_PER_CELL, direction_of_sea_water_velocity_y / NUM_STATIONS_PER_CELL)
 
-
 def plot_current(current: List[List[Tuple[float, float, float]]], width: int, height: int):
     """
     Plot the current
@@ -95,7 +100,7 @@ def plot_current(current: List[List[Tuple[float, float, float]]], width: int, he
                 ax.quiver(j, i, direction_of_sea_water_velocity_x, direction_of_sea_water_velocity_y, angles='xy', scale_units='xy', linewidth=0.01, scale=0.8, color='blue')
 
     plt.gca().invert_yaxis()
-    plt.title(f"current {width}x{height}")
+    plt.title(f"Current {width}x{height}")
     plt.axis('off')
     plt.show()
 
@@ -114,12 +119,16 @@ def save_current(current: List[List[Tuple[float, float, float]]], width: int, he
                 f.write(f"{i},{j},{sea_water_speed},{direction_of_sea_water_velocity_x},{direction_of_sea_water_velocity_y}\n")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python generate_current_csv.py <width> <height>")
+    if len(sys.argv) != 7:
+        print("Usage: python generate_current_csv.py <width> <height> <lower_right_lat> <lower_right_lon> <upper_left_lat> <upper_left_lon>")
         sys.exit(1)
 
     width = int(sys.argv[1])
     height = int(sys.argv[2])
+    lower_right_lat = float(sys.argv[3])
+    lower_right_lon = float(sys.argv[4])
+    upper_left_lat = float(sys.argv[5])
+    upper_left_lon = float(sys.argv[6])
 
     assert width > 0 and height > 0, "Width and height must be positive integers"
 
@@ -129,7 +138,7 @@ if __name__ == "__main__":
 
     df = pd.read_csv(csv_file_path)
 
-    current = create_current(df, width, height)
+    current = create_current(df, width, height, lower_right_lat, lower_right_lon, upper_left_lat, upper_left_lon)
 
     # plot_current(current, width, height)
 

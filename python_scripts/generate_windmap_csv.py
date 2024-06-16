@@ -5,18 +5,31 @@ import matplotlib.pyplot as plt
 from typing import List, Tuple
 
 csv_file_path = "data/gcoos_2010_04_wind_PROCESSED.csv"
+# csv_file_path = "../data/gcoos_2010_04_wind_PROCESSED.csv"
 save_file_path = "data/windmap.csv"
+# save_file_path = "../data/windmap.csv"
 NUM_STATIONS_PER_CELL = 3
 
-def create_windmap(df: pd.DataFrame, width: int, height: int):
+def create_windmap(df: pd.DataFrame, width: int, height: int, lower_right_lat: float, lower_right_lon: float, upper_left_lat: float, upper_left_lon: float):
     """
-    Create a windmap from the given dataframe, devide the points evenly into the windmap
+    Create a windmap from the given dataframe, divide the points evenly into the windmap
     and return the windmap
     """
+
+    print(lower_right_lat, lower_right_lon, upper_left_lat, upper_left_lon)
+
+
+    # Filter the dataframe to include only stations within the specified rectangle
+    df = df[(df["latitude"] <= upper_left_lat) & (df["latitude"] >= lower_right_lat) &
+            (df["longitude"] >= upper_left_lon) & (df["longitude"] <= lower_right_lon)]
+    
+    print("Winds map selected stations:")
+    print(df)
+
     windmap = [[[] for _ in range(width)] for _ in range(height)]
     stations = []
 
-    # Get the min and max latitude and longitude
+    # Get the min and max latitude and longitude within the filtered dataframe
     min_lat = df["latitude"].min()
     max_lat = df["latitude"].max()
     min_lon = df["longitude"].min()
@@ -43,7 +56,7 @@ def create_windmap(df: pd.DataFrame, width: int, height: int):
 
         # Ensure the index is within the valid range
         lat_index = min(lat_index, height - 1)
-        lon_index = min(lon_index, width - 1)   
+        lon_index = min(lon_index, width - 1)
 
         windmap[lat_index][lon_index] = (wind_speed, wind_to_direction_x, wind_to_direction_y)
         stations.append((lat_index, lon_index))
@@ -53,7 +66,6 @@ def create_windmap(df: pd.DataFrame, width: int, height: int):
     return windmap
 
 def get_nearest_stations(i: int, j: int, stations: List[Tuple[int, int]]): 
-
     """
     Find and return NUM_STATIONS_PER_CELL nearest stations to the given cell
     """
@@ -81,7 +93,6 @@ def fill_wind_map(windmap: List[List[Tuple[float, float, float]]], stations: Lis
                     wind_to_direction_x += windmap[station[0]][station[1]][1]
                     wind_to_direction_y += windmap[station[0]][station[1]][2]
                 windmap[i][j] = (wind_speed / NUM_STATIONS_PER_CELL, wind_to_direction_x / NUM_STATIONS_PER_CELL, wind_to_direction_y / NUM_STATIONS_PER_CELL)
-
 
 def plot_windmap(windmap: List[List[Tuple[float, float, float]]], width: int, height: int):
     """
@@ -114,29 +125,29 @@ def save_windmap(windmap: List[List[Tuple[float, float, float]]], width: int, he
                 f.write(f"{i},{j},{wind_speed},{wind_to_direction_x},{wind_to_direction_y}\n")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python generate_windmap_csv.py <width> <height>")
+    if len(sys.argv) != 7:
+        print("Usage: python generate_windmap_csv.py <width> <height> <lower_right_lat> <lower_right_lon> <upper_left_lat> <upper_left_lon>")
         sys.exit(1)
 
     width = int(sys.argv[1])
     height = int(sys.argv[2])
+    lower_right_lat = float(sys.argv[3])
+    lower_right_lon = float(sys.argv[4])
+    upper_left_lat = float(sys.argv[5])
+    upper_left_lon = float(sys.argv[6])
 
     assert width > 0 and height > 0, "Width and height must be positive integers"
 
-    if not os.path.exists(csv_file_path):
-        print("Run wind_data_preprocessing.py first...")
-        os.system("python python_scripts/wind_data_preprocessing.py")
+    # if not os.path.exists(csv_file_path):
+    #     print("Run wind_data_preprocessing.py first...")
+    #     os.system("python python_scripts/wind_data_preprocessing.py")
 
     df = pd.read_csv(csv_file_path)
 
-    windmap = create_windmap(df, width, height)
+    windmap = create_windmap(df, width, height, lower_right_lat, lower_right_lon, upper_left_lat, upper_left_lon)
 
-    #plot_windmap(windmap, width, height)
+    # plot_windmap(windmap, width, height)
 
     save_windmap(windmap, width, height)
 
     print(f"Windmap saved to {save_file_path}")
-
-    
-
-   

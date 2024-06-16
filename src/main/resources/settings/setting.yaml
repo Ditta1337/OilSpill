@@ -1,3 +1,9 @@
-cell_width: 20 #in kilometers
-oil_per_cell: 1000000 #oil spill per cell in liters
+cell_width: 20 # in kilometers
+oil_per_cell: 1000000 # oil spill per cell in liters
+
+# lower right and upper left coordinates of the area
+upper_left_lat: 30.43
+upper_left_lon: -90.69
+lower_right_lat: 28.58
+lower_right_lon: -86.27
 

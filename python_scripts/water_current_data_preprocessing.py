@@ -11,7 +11,7 @@ df = pd.read_csv(csv_file_path)
 # parse the date from this format: 2010-04-01T00:00:00Z
 # and select only datapoints from 2010-04-20
 df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%dT%H:%M:%SZ")
-df = df[df["date"].dt.date == pd.Timestamp("2010-04-20").date()]
+df = df[df["date"].dt.date == pd.Timestamp("2010-04-28").date()]
 
 # Select only columns latitude, longitude, wind_to_direction, vertical_datum, wind_speed
 df = df[["latitude", "longitude", "vertical_datum", "sea_water_speed", "direction_of_sea_water_velocity"]]

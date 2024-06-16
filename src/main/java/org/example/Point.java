@@ -9,8 +9,8 @@ public class Point {
 	private final Map<Direction, Point> neighbours = new HashMap<>();
 	private static final double EPSILON = 1e-10; // small value to account for floating-point errors
 
-	private final double m = 0.05; //0.05
-	private final double d = 0.2; //0.2
+	private final double m = 0.005; //0.05
+	private final double d = 0.02; //0.2
 	private PointType type;
 	private double oil = 0;
 	private double nextOil = 0;

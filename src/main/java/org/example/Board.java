@@ -62,18 +62,14 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		return timeElapsed;
 	}
 
-	public Point[][] getPoints(){
-		return points.clone();
-	}
-
 	// single iteration
 	public void iteration() {
 		iterations++;
-		double daysElapsed = iterations * DTirl / 86400;
 		timeElapsed = "Time elapsed: " + String.format("%.2f", iterations * DTirl / 86400 ) + " days";
-		int dayToCompare = Math.round((float) daysElapsed);
-		if (dayToCompare < 5) {
-			showIntersectionOverUnion(daysElapsed, dayToCompare);
+		double daysElapsed = iterations * DTirl / 86400;
+		int dayToCompare = (int) Math.floor(daysElapsed);
+		if (dayToCompare < 4) {
+			timeElapsed += " IoU: " + showIntersectionOverUnion(dayToCompare);
 		}
 
 		for (int x = 1; x < length - 1; ++x) {
@@ -92,15 +88,16 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
 	}
 
-	private void showIntersectionOverUnion(double daysElapsed, int dayToCompare) {
+	private String showIntersectionOverUnion(int dayToCompare) {
 		String fileName = "horizon_" + dayToCompare;
 		Point[][] horizon = Loader.loadMap(fileName);
-		double percentage = IntersectionOverUnion.compare(points, horizon, 0);
-		System.out.println("Day: " + String.format("%.2f", daysElapsed) + " IoU: " + String.format("%.2f", percentage));
+        return String.format("%.2f", IntersectionOverUnion.compare(points, horizon, 500));
 	}
 
 	// clearing board
 	public void clear() {
+		iterations = 0;
+		timeElapsed = "No time elapsed";
 		for (int x = 0; x < length; ++x) {
 			for (int y = 0; y < height; ++y) {
 				points[x][y].setType(DEFAULTPOINT);
@@ -123,9 +120,7 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		}
 		if (oldPoints != null) {
 			for (int x = 0; x < Math.min(length, oldPoints.length); ++x) {
-				for (int y = 0; y < Math.min(height, oldPoints[0].length); ++y) {
-					newPoints[x][y] = oldPoints[x][y];
-				}
+                System.arraycopy(oldPoints[x], 0, newPoints[x], 0, Math.min(height, oldPoints[0].length));
 			}
 		}
 
@@ -172,9 +167,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 		// set the window size so it fits the board
 		Container parent = getParent();
 		while (parent != null) {
-			if (parent instanceof JFrame) {
-				JFrame frame = (JFrame) parent;
-				frame.pack();
+			if (parent instanceof JFrame frame) {
+                frame.pack();
 				frame.setSize(new Dimension(length * SIZE, height * SIZE)); // set the size of the JFrame directly
 				break;
 			}

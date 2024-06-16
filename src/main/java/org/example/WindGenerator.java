@@ -1,8 +1,6 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class WindGenerator {
 
@@ -29,9 +27,10 @@ public class WindGenerator {
     }
 
     public static WindPoint[][] generateWindMapFromCSV(int rows, int cols) {
+        double[] coordinates = Loader.getAreaCoordinates();
         System.out.println("Generating combined map");
         // generate rows x cols wind map csv file
-        String command = "python3 " + SCRIPTPATH + " " + rows + " " + cols;
+        String command = "python3 " + SCRIPTPATH + " " + rows + " " + cols + " " + coordinates[0] + " " + coordinates[1] + " " + coordinates[2] + " " + coordinates[3];
         try {
             System.out.println(command);
             Process process = Runtime.getRuntime().exec(command);
@@ -43,8 +42,6 @@ public class WindGenerator {
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
-
-            System.out.println("Wind map generated");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -60,7 +57,7 @@ public class WindGenerator {
                 for (int j = 0; j < cols; j++) {
                     double speed = Double.parseDouble(wind[2]);
                     maxSpeed = Math.max(maxSpeed, speed);
-                    windMap[i][j] = new WindPoint(new Vector2D(-Double.parseDouble(wind[3]), -Double.parseDouble(wind[4])), speed);
+                    windMap[i][j] = new WindPoint(new Vector2D(Double.parseDouble(wind[3]), Double.parseDouble(wind[4])), speed);
                 }
             }
         } catch (Exception e) {
@@ -68,11 +65,12 @@ public class WindGenerator {
         }
 
         // set DT
-        Board.setDT(Board.getSIZE() / (maxSpeed * 2));
-        Board.setDTirl(Board.getDT() * 4000 / 3);
+        Board.setDT(Board.getSIZE() / (maxSpeed * 20));
+        Board.setDTirl(Board.getDT() * 4000 * 20 / 3);
 
         return windMap;
     }
 
-
 }
+
+

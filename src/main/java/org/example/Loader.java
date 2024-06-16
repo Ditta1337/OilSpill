@@ -21,8 +21,7 @@ public class Loader {
                     if (point[2].equals("OIL") || point[2].equals("WATER")) {
                         mapState[i][j] = new Point(PointType.WATER);
                         mapState[i][j].setOil(Double.parseDouble(point[3]));
-                    }
-                    else {
+                    } else {
                         mapState[i][j] = new Point(PointType.LAND);
                     }
                 }
@@ -40,7 +39,7 @@ public class Loader {
     }
 
     public static void delete(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(MAPPATH + fileName))) {
+        try (BufferedReader ignored = new BufferedReader(new FileReader(MAPPATH + fileName))) {
             File file = new File(MAPPATH + fileName);
             file.delete();
         } catch (IOException e) {
@@ -62,6 +61,25 @@ public class Loader {
             System.out.println("Error while loading map settings");
             e.printStackTrace();
         }
+    }
 
+    public static double[] getAreaCoordinates() {
+        Yaml yaml = new Yaml();
+        try (InputStream in = new FileInputStream(MAPSETTINGSPATH)) {
+            Map<String, Object> mapSettings = yaml.load(in);
+            double lower_right_lat = (double) mapSettings.get("lower_right_lat");
+            double lower_right_lon = (double) mapSettings.get("lower_right_lon");
+            double upper_left_lat = (double) mapSettings.get("upper_left_lat");
+            double upper_left_lon = (double) mapSettings.get("upper_left_lon");
+
+            return new double[]{lower_right_lat, lower_right_lon, upper_left_lat, upper_left_lon};
+
+        } catch (Exception e) {
+            System.out.println("Error while loading map settings");
+            e.printStackTrace();
+        }
+
+        return new double[]{0, 0, 0, 0};
     }
 }
+

@@ -39,11 +39,11 @@ def combine_maps(windmap_path: str, currentmap_path: str, combinedmap_path: str)
         current_velocity_x = float(current_row[3])
         current_velocity_y = float(current_row[4])
 
-        sea_water_speed = (wind_sea_water_speed + current_sea_water_speed) / 2
+        speed = (wind_sea_water_speed + current_sea_water_speed) / 2
         velocity_x = (wind_velocity_x + current_velocity_x) / 2
         velocity_y = (wind_velocity_y + current_velocity_y) / 2
 
-        combinedmap.append([wind_row[0], wind_row[1], sea_water_speed, velocity_x, velocity_y])
+        combinedmap.append([wind_row[0], wind_row[1], speed, velocity_x, velocity_y])
 
     with open(combinedmap_path, 'w', newline='') as combinedmap_file:
         writer = csv.writer(combinedmap_file)
@@ -53,16 +53,20 @@ def combine_maps(windmap_path: str, currentmap_path: str, combinedmap_path: str)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python generate_combinedmap_csv.py <width> <height>")
+    if len(sys.argv) != 7:
+        print("Usage: python generate_combinedmap_csv.py <width> <height> <lower_right_lat> <lower_right_lon> <upper_left_lat> <upper_left_lon>")
         sys.exit(1)
 
     width = int(sys.argv[1])
     height = int(sys.argv[2])
+    lower_right_lat = float(sys.argv[3])
+    lower_right_lon = float(sys.argv[4])
+    upper_left_lat = float(sys.argv[5])
+    upper_left_lon = float(sys.argv[6])
 
 
-    os.system(f"python python_scripts/generate_windmap_csv.py {width} {height}")
-    os.system(f"python python_scripts/generate_currentmap_csv.py {width} {height}")
+    os.system(f"python python_scripts/generate_windmap_csv.py {width} {height} {lower_right_lat} {lower_right_lon} {upper_left_lat} {upper_left_lon}")
+    os.system(f"python python_scripts/generate_currentmap_csv.py {width} {height} {lower_right_lat} {lower_right_lon} {upper_left_lat} {upper_left_lon}")
 
     combine_maps(windmap_path, currentmap_path, combinedmap_path)
 
